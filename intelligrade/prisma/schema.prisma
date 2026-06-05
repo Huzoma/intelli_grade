@@ -1,0 +1,70 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+enum Role {
+  STUDENT
+  LECTURER
+}
+
+model User {
+  id                 String       @id @default(uuid())
+  email              String       @unique
+  password           String
+  name               String
+  role               Role
+  matricNo           String?      @unique
+  department         String?
+  level              String?
+  submissions        Submission[] @relation("StudentSubmissions")
+  assignedSubmissions Submission[] @relation("LecturerSubmissions")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model Submission {
+  id            String         @id @default(uuid())
+  docTitle      String
+  filePath      String
+  fileSize      String
+  type          String         // e.g., 'it_report', 'project_proposal', 'assignment'
+  date          DateTime       @default(now())
+  status        String         @default("processing") // 'processing', 'needs_grading', 'graded'
+  aiScore       Int?           // 0-100% probability
+  humanScore    Int?           // 0-100 grade
+  entities      String?        // Comma-separated list or JSON string of technologies/entities
+  summary       String?        // Dynamic academic summary
+  studentId     String
+  student       User           @relation("StudentSubmissions", fields: [studentId], references: [id])
+  lecturerId    String?
+  lecturer      User?          @relation("LecturerSubmissions", fields: [lecturerId], references: [id])
+  rubricId      Int?
+  rubric        Rubric?        @relation(fields: [rubricId], references: [id])
+  vivaQuestions VivaQuestion[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Rubric {
+  id            Int          @id @default(autoincrement())
+  title         String
+  criteriaCount Int
+  criteriaList  String       // JSON array of strings for evaluation criteria
+  lastUpdated   DateTime     @default(now())
+  submissions   Submission[]
+}
+
+model VivaQuestion {
+  id           Int        @id @default(autoincrement())
+  text         String
+  added        Boolean    @default(false)
+  marker       String?    // Text quote showing extraction source
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
