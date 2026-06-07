@@ -1,14 +1,14 @@
 import { getCurrentUser } from "@/app/actions/auth";
 import { prisma } from "@/lib/prisma";
-import ReviewWorkspaceClient from "./ReviewWorkspaceClient";
+import StudentReviewClient from "./StudentReviewClient";
 import { redirect, notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReviewWorkspacePage({ params }) {
+export default async function StudentReviewWorkspacePage({ params }) {
   const user = await getCurrentUser();
   
-  if (!user || user.role !== "LECTURER") {
+  if (!user || user.role !== "STUDENT") {
     redirect("/api/auth/logout");
   }
 
@@ -18,13 +18,12 @@ export default async function ReviewWorkspacePage({ params }) {
     notFound();
   }
 
-  // Fetch the submission along with student, rubric, viva questions, and comments
+  // Fetch the submission along with student, rubric, and comments (NO VIVA QUESTIONS for students)
   const submission = await prisma.submission.findUnique({
     where: { id: id },
     include: {
       student: true,
       rubric: true,
-      vivaQuestions: true,
       comments: {
         orderBy: { createdAt: "asc" }
       }
@@ -33,6 +32,11 @@ export default async function ReviewWorkspacePage({ params }) {
 
   if (!submission) {
     notFound();
+  }
+
+  // Security check: Only the owner of the submission can view their feedback
+  if (submission.studentId !== user.id) {
+    redirect("/student");
   }
 
   // Parse Rubric criteria from JSON list string
@@ -69,17 +73,9 @@ export default async function ReviewWorkspacePage({ params }) {
     })),
   };
 
-  const serializedVivaQuestions = submission.vivaQuestions.map(q => ({
-    id: q.id,
-    text: q.text,
-    added: q.added,
-    marker: q.marker || "",
-  }));
-
   return (
-    <ReviewWorkspaceClient
+    <StudentReviewClient
       submission={serializedSubmission}
-      vivaQuestions={serializedVivaQuestions}
       rubricCriteria={criteriaList}
     />
   );

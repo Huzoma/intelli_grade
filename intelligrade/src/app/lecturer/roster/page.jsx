@@ -9,7 +9,7 @@ export default async function ClassRosterPage() {
   const user = await getCurrentUser();
   
   if (!user || user.role !== "LECTURER") {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   // Find all student users

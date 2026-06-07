@@ -40,6 +40,7 @@ model Submission {
   humanScore    Int?           // 0-100 grade
   entities      String?        // Comma-separated list or JSON string of technologies/entities
   summary       String?        // Dynamic academic summary
+  fullText      String?        // Full parsed document content
   studentId     String
   student       User           @relation("StudentSubmissions", fields: [studentId], references: [id])
   lecturerId    String?
@@ -47,6 +48,7 @@ model Submission {
   rubricId      Int?
   rubric        Rubric?        @relation(fields: [rubricId], references: [id])
   vivaQuestions VivaQuestion[]
+  comments      Comment[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -67,4 +69,13 @@ model VivaQuestion {
   marker       String?    // Text quote showing extraction source
   submissionId String
   submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id           Int        @id @default(autoincrement())
+  text         String
+  quote        String
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 }

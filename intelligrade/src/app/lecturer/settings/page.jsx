@@ -8,7 +8,7 @@ export default async function LecturerSettingsPage() {
   const user = await getCurrentUser();
   
   if (!user || user.role !== "LECTURER") {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   return <LecturerSettingsClient user={user} />;

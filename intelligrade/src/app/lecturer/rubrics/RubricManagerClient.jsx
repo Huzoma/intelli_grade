@@ -14,25 +14,61 @@ export default function RubricManagerClient({ initialRubrics }) {
   const [loading, setLoading] = useState(false);
 
   const openCreateModal = () => {
-    setEditingRubric({ title: "", criteriaCount: 4, criteriaList: ["", "", "", ""] });
+    setEditingRubric({
+      title: "",
+      criteriaCount: 4,
+      criteriaList: [
+        { text: "", points: 10 },
+        { text: "", points: 10 },
+        { text: "", points: 10 },
+        { text: "", points: 10 }
+      ]
+    });
     setIsEditingExisting(false);
     setIsModalOpen(true);
   };
 
   const openEditModal = (rubric) => {
+    const rawList = Array.isArray(rubric.criteriaList) ? rubric.criteriaList : [];
+    const normalized = rawList.map((item) => {
+      if (typeof item === "string") {
+        return { text: item, points: 10 };
+      }
+      return {
+        text: item.text || "",
+        points: typeof item.points === "number" ? item.points : 10,
+      };
+    });
+
     setEditingRubric({
       id: rubric.id,
       title: rubric.title,
       criteriaCount: rubric.criteriaCount,
-      criteriaList: Array.isArray(rubric.criteriaList) ? rubric.criteriaList : []
+      criteriaList: normalized
     });
     setIsEditingExisting(true);
     setIsModalOpen(true);
   };
 
-  const handleCriteriaChange = (index, value) => {
+  const handleCriteriaChange = (index, field, value) => {
     const list = [...editingRubric.criteriaList];
-    list[index] = value;
+    const currentItem = list[index];
+    
+    let updatedItem;
+    if (typeof currentItem === "string") {
+      updatedItem = {
+        text: field === "text" ? value : currentItem,
+        points: field === "points" ? (parseInt(value) || 0) : 10
+      };
+    } else {
+      updatedItem = {
+        text: currentItem?.text || "",
+        points: typeof currentItem?.points === "number" ? currentItem.points : 10,
+        [field]: field === "points" ? (parseInt(value) || 0) : value
+      };
+    }
+    
+    list[index] = updatedItem;
     setEditingRubric({ ...editingRubric, criteriaList: list });
   };
 
@@ -42,7 +78,7 @@ export default function RubricManagerClient({ initialRubrics }) {
     
     if (list.length < newCount) {
       while (list.length < newCount) {
-        list.push("");
+        list.push({ text: "", points: 10 });
       }
     } else if (list.length > newCount) {
       list.splice(newCount);
@@ -57,11 +93,25 @@ export default function RubricManagerClient({ initialRubrics }) {
       return;
     }
 
-    const emptyFilter = editingRubric.criteriaList.filter(c => c.trim() !== "");
-    if (emptyFilter.length === 0) {
+    const validCriteria = editingRubric.criteriaList.filter(c => {
+      const text = typeof c === "string" ? c : c.text;
+      return text.trim() !== "";
+    });
+
+    if (validCriteria.length === 0) {
       toast.error("Please provide at least one evaluation criteria description.");
       return;
     }
+
+    const normalizedToSave = validCriteria.map(c => {
+      if (typeof c === "string") {
+        return { text: c, points: 10 };
+      }
+      return {
+        text: c.text,
+        points: typeof c.points === "number" ? c.points : 10
+      };
+    });
 
     setLoading(true);
 
@@ -70,7 +120,7 @@ export default function RubricManagerClient({ initialRubrics }) {
         editingRubric.id,
         editingRubric.title,
         editingRubric.criteriaCount,
-        emptyFilter
+        normalizedToSave
       );
       setLoading(false);
 
@@ -80,8 +130,8 @@ export default function RubricManagerClient({ initialRubrics }) {
         toast.success("Rubric updated successfully!");
         setRubrics(rubrics.map(r => r.id === editingRubric.id ? {
           ...editingRubric,
-          criteriaCount: emptyFilter.length,
-          criteriaList: emptyFilter,
+          criteriaCount: normalizedToSave.length,
+          criteriaList: normalizedToSave,
           lastUpdated: "Just now"
         } : r));
         setIsModalOpen(false);
@@ -90,7 +140,7 @@ export default function RubricManagerClient({ initialRubrics }) {
       const res = await createRubricAction(
         editingRubric.title,
         editingRubric.criteriaCount,
-        emptyFilter
+        normalizedToSave
       );
       setLoading(false);
 
@@ -102,7 +152,7 @@ export default function RubricManagerClient({ initialRubrics }) {
           id: res.rubric.id,
           title: res.rubric.title,
           criteriaCount: res.rubric.criteriaCount,
-          criteriaList: emptyFilter,
+          criteriaList: normalizedToSave,
           lastUpdated: "Just now"
         };
         setRubrics([newRubric, ...rubrics]);
@@ -234,19 +284,33 @@ export default function RubricManagerClient({ initialRubrics }) {
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Evaluation Checkpoints</label>
-                  {editingRubric.criteriaList.map((crit, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <span className="text-xs font-bold text-slate-400 w-5">{index + 1}.</span>
-                      <input 
-                        type="text"
-                        value={crit}
-                        onChange={(e) => handleCriteriaChange(index, e.target.value)}
-                        placeholder={`Criteria checkpoint ${index + 1}`}
-                        className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-805 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs transition-all"
-                      />
-                    </div>
-                  ))}
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Evaluation Checkpoints</label>
+                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider pr-2 select-none">Points Weight</div>
+                  </div>
+                  {editingRubric.criteriaList.map((crit, index) => {
+                    const textValue = typeof crit === "string" ? crit : crit.text || "";
+                    const pointsValue = typeof crit === "string" ? 10 : (typeof crit.points === "number" ? crit.points : 10);
+                    return (
+                      <div key={index} className="flex items-center space-x-3">
+                        <span className="text-xs font-bold text-slate-400 w-4 shrink-0">{index + 1}.</span>
+                        <input 
+                          type="text"
+                          value={textValue}
+                          onChange={(e) => handleCriteriaChange(index, "text", e.target.value)}
+                          placeholder={`Criteria description ${index + 1}`}
+                          className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs transition-all"
+                        />
+                        <input 
+                          type="number"
+                          value={pointsValue}
+                          onChange={(e) => handleCriteriaChange(index, "points", e.target.value)}
+                          placeholder="Pts"
+                          className="w-20 px-2.5 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-center font-bold focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs shrink-0 transition-all"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               

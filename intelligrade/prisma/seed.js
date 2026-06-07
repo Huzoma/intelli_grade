@@ -152,6 +152,26 @@ async function main() {
       rubricId: rubric2.id,
       entities: "Next.js App Router, Role-Based Access Control, PostgreSQL, Tailwind CSS, Framer Motion",
       summary: "This proposal outlines the SaaS architecture for the IntelliGrade grading platform. It describes the integration of Next.js for server-side rendering, SQLite for secure data persistence, and Framer Motion for rich, animated user dashboards.",
+      fullText: `Federal University Of Petroleum Resources
+Excellence and Relevance
+Name: BEECROFT ARNOLD OLUWATOBILOBA
+Matric Number: COS/7437/2020
+Supervisor/Mentor: Mr NIEMOGHA STAR
+Department: COMPUTER SCIENCE
+
+PROJECT TITLE: Neural Machine Translation for English-to-Itsekiri: A Digital Approach to Language Preservation
+
+EXECUTIVE SUMMARY
+Nigeria's rich linguistic heritage faces an urgent threat, as indigenous languages like Itsekiri edge toward extinction due to limited documentation and dwindling usage among younger generations. This project aims to intervene by leveraging deep learning techniques specifically the T5 Transformer model to translate English into Itsekiri, thereby preserving the language. To achieve this, a bilingual parallel corpus of English-Itsekiri sentences will be created and used to fine-tune the translation model.
+
+SYSTEM ARCHITECTURE
+The system is built on a modern SaaS architecture. Choosing Next.js over a standard React SPA allows server-side rendering, improving the load speeds of heavy lecturer dashboard charts. This performance boost is critical for managing real-time data visualizers.
+
+FILE UPLOAD AND MANAGEMENT
+Handling user files asynchronously was a major architectural consideration. State management for the asynchronous file upload uses a central React state machine to track progress states (idle, uploading, success, error). This guarantees that network failures are handled gracefully.
+
+SECURITY POLICIES
+Access control is implemented strictly on the router level. Security is enforced by checking session cookies inside middleware.ts, redirecting unauthorized student users trying to reach lecturer paths.`
     },
   });
 
@@ -195,6 +215,19 @@ async function main() {
       rubricId: rubric1.id,
       entities: "React hooks, API integration, file handling, local state management",
       summary: "A comprehensive 6-month SIWES internship logbook documenting frontend development tasks. Focuses on building responsive layout components, integrating CRUD APIs, and optimizing client-side performance.",
+      fullText: `SIWES 6-Month Internship Report
+Submitted by Uzoma Iyke Tobechukwu
+Matric: CSC/2022/045
+Department of Computer Science
+
+1. INTRODUCTION
+This report details the work completed during my 6-month Student Industrial Work Experience Scheme (SIWES) at the University IT Center. The placement focused on frontend development.
+
+2. TECHNICAL CHALLENGES
+During the integration phase of the project, we encountered several performance issues. The main challenges included synchronizing local component state with complex multi-stage forms and debugging latency in external API fetches. This required building custom debouncers.
+
+3. PERSISTENCE LAYER AND CONSISTENCY
+Data safety was a primary focus of our database team. Data consistency is maintained through optimistic updates and structured SQL transaction rollbacks on the SQLite backend, preventing dirty reads or orphaned references.`
     },
   });
 

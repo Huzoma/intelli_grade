@@ -38,3 +38,37 @@ export async function submitGradeAction(submissionId, humanScore, status = "grad
     return { error: "Failed to submit grade: " + error.message };
   }
 }
+
+// Action to create a remote feedback comment on a document highlight selection
+export async function createCommentAction(submissionId, quote, text) {
+  try {
+    const newComment = await prisma.comment.create({
+      data: {
+        text,
+        quote,
+        submissionId
+      }
+    });
+
+    revalidatePath(`/lecturer/review/${submissionId}`);
+    return { success: true, comment: newComment };
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    return { error: "Failed to save comment: " + error.message };
+  }
+}
+
+// Action to delete a remote feedback comment
+export async function deleteCommentAction(commentId, submissionId) {
+  try {
+    await prisma.comment.delete({
+      where: { id: parseInt(commentId) }
+    });
+
+    revalidatePath(`/lecturer/review/${submissionId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    return { error: "Failed to delete comment: " + error.message };
+  }
+}

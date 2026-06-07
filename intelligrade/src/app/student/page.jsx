@@ -9,7 +9,7 @@ export default async function StudentDashboardPage() {
   const user = await getCurrentUser();
   
   if (!user || user.role !== "STUDENT") {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   // Fetch all submissions for this student from DB

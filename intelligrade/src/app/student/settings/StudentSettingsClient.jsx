@@ -76,7 +76,7 @@ export default function StudentSettingsClient({ user }) {
             <div className="flex items-center justify-between">
               <div className="pr-4">
                 <p className="font-bold text-slate-900 dark:text-white">Lecturer Grade Published</p>
-                <p className="text-sm text-slate-500 dark:text-slate-405 font-medium">Receive an alert when your final grade and viva questions are posted.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-405 font-medium">Receive an alert when your final grade and evaluation results are posted.</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer shrink-0">
                 <input type="checkbox" className="sr-only peer" defaultChecked />

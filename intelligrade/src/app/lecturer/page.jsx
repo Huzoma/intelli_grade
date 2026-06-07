@@ -9,7 +9,7 @@ export default async function LecturerDashboardPage() {
   const user = await getCurrentUser();
   
   if (!user || user.role !== "LECTURER") {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   // Fetch all submissions in the system with associated student profiles

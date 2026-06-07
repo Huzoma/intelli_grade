@@ -182,36 +182,48 @@ export default function StudentDashboardClient({ user, submissions, metrics }) {
           <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {submissions.length === 0 ? (
               <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                No submissions yet. Click "Start Upload" to submit your first document.
+                No submissions yet. Click &quot;Start Upload&quot; to submit your first document.
               </div>
             ) : (
-              submissions.map((sub) => (
-                <motion.div 
-                  key={sub.id}
-                  whileHover={{ backgroundColor: "rgba(99, 102, 241, 0.02)" }}
-                  className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 rounded-lg">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-xs">{sub.docTitle}</p>
-                        <span className={`text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border w-max ${getTypeBadgeClass(sub.type)}`}>
-                          {getSubmissionTypeLabel(sub.type)}
-                        </span>
+              submissions.map((sub) => {
+                const isClickable = sub.status !== "processing";
+                const content = (
+                  <motion.div 
+                    whileHover={isClickable ? { backgroundColor: "rgba(99, 102, 241, 0.02)" } : {}}
+                    className={`px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${isClickable ? "cursor-pointer" : "cursor-not-allowed"}`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 rounded-lg">
+                        <FileText className="w-5 h-5" />
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5" suppressHydrationWarning>
-                        {formatDate(sub.createdAt)} • {sub.fileSize}
-                      </p>
+                      <div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-xs">{sub.docTitle}</p>
+                          <span className={`text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border w-max ${getTypeBadgeClass(sub.type)}`}>
+                            {getSubmissionTypeLabel(sub.type)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-505 dark:text-slate-400 mt-0.5" suppressHydrationWarning>
+                          {formatDate(sub.createdAt)} • {sub.fileSize}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusClass(sub.status)}`}>
-                    {getStatusLabel(sub.status)}
-                  </span>
-                </motion.div>
-              ))
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusClass(sub.status)}`}>
+                      {getStatusLabel(sub.status)}
+                    </span>
+                  </motion.div>
+                );
+
+                if (isClickable) {
+                  return (
+                    <Link key={sub.id} href={`/student/review/${sub.id}`} className="block">
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return <div key={sub.id}>{content}</div>;
+              })
             )}
           </div>
         </div>

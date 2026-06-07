@@ -53,6 +53,7 @@ export async function POST(request) {
 3. AI generated probability percentage (0-100%, lower is better, human text is usually < 20%).
 4. Key technologies, tools, libraries, or concepts referenced in the document (comma-separated string).
 5. Exactly 3 technical viva questions to ask the student to test their comprehension of their work. For each question, extract a precise quote or marker (1-2 sentences) from the document showing the exact context/evidence where the question was derived.
+6. The full text content of the document (extract verbatim all paragraphs and text from the PDF, preserving raw text with double newlines separating paragraphs).
 
 Return ONLY a valid JSON object matching this schema. Do not wrap in markdown blocks like \`\`\`json.
 {
@@ -60,6 +61,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   "summary": "string",
   "aiScore": number,
   "entities": "string",
+  "fullText": "string",
   "vivaQuestions": [
     {
       "text": "string",
@@ -68,7 +70,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   ]
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -100,6 +102,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
     let summary = "";
     let aiScore = 15;
     let entities = "";
+    let fullText = "";
     let vivaQuestions = [];
 
     if (response.ok) {
@@ -113,6 +116,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
         summary = parsed.summary || "";
         aiScore = typeof parsed.aiScore === "number" ? parsed.aiScore : 15;
         entities = parsed.entities || "";
+        fullText = parsed.fullText || "";
         vivaQuestions = Array.isArray(parsed.vivaQuestions) ? parsed.vivaQuestions : [];
       } else {
         throw new Error("Gemini returned an empty response body.");
@@ -126,7 +130,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
       throw new Error("Gemini API failed to generate any viva questions.");
     }
 
-    // 4. Update the Submission status to needs_grading and bind scores, summary & entities
+    // 4. Update the Submission status to needs_grading and bind scores, summary, entities & fullText
     await prisma.submission.update({
       where: { id: submissionId },
       data: {
@@ -134,6 +138,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
         summary: summary,
         aiScore: aiScore,
         entities: entities,
+        fullText: fullText,
         status: "needs_grading"
       }
     });

@@ -8,7 +8,7 @@ export default async function StudentSettingsPage() {
   const user = await getCurrentUser();
   
   if (!user || user.role !== "STUDENT") {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   return <StudentSettingsClient user={user} />;
