@@ -28,7 +28,7 @@ const itemVariants = {
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
       {/* Floating Theme Toggle */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />

@@ -53,7 +53,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-6 lg:px-8 relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-center py-12 px-6 lg:px-8 relative bg-background text-foreground transition-colors duration-300 overflow-hidden">
       {/* Floating Theme Toggle */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />

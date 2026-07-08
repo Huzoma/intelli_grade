@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }) {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden relative">
+    <div className="flex h-screen bg-background text-foreground transition-colors duration-300 overflow-hidden relative">
       <Sidebar role="STUDENT" navigation={navigation} />
       <main className="flex-1 overflow-y-auto w-full pt-16 md:pt-0">
         <div className="h-full w-full">

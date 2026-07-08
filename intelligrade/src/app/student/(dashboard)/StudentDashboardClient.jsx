@@ -134,7 +134,7 @@ export default function StudentDashboardClient({ user, submissions, metrics }) {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link
                 href="/student/upload"
-                className="inline-flex items-center justify-center w-full bg-white dark:bg-slate-100 text-primary font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors shadow-sm cursor-pointer group text-xs uppercase tracking-wider"
+                className="inline-flex items-center justify-center w-full bg-white text-indigo-600 font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors shadow-sm cursor-pointer group text-xs uppercase tracking-wider"
               >
                 Start Upload 
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />

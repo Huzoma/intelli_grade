@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head />
-      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-200 transition-colors duration-200">
+      <body className="min-h-full flex flex-col font-sans selection:bg-blue-200 transition-colors duration-200">
         <Script
           id="theme-initializer"
           strategy="beforeInteractive"
