@@ -181,13 +181,13 @@ export default function RubricManagerClient({ initialRubrics }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Rubric Manager</h1>
-          <p className="text-sm sm:text-base text-slate-550 dark:text-slate-405 mt-1 font-medium">Configure grading criteria for the CS Department.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-semibold">Configure grading criteria for the CS Department.</p>
         </div>
         <motion.button 
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={openCreateModal}
-          className="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-650 dark:bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-550 shadow-md transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-hover shadow-md transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4 mr-2" /> Create Rubric
         </motion.button>
@@ -208,22 +208,22 @@ export default function RubricManagerClient({ initialRubrics }) {
             >
               <div>
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 rounded-xl shadow-inner">
+                  <div className="p-3 bg-primary-light text-primary rounded-xl shadow-inner">
                     <ListChecks className="w-5 h-5" />
                   </div>
-                  <button className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 cursor-pointer">
+                  <button className="text-slate-400 dark:text-slate-500 hover:text-slate-605 cursor-pointer">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
                 <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white mb-1.5 leading-tight">{rubric.title}</h3>
-                <p className="text-sm font-semibold text-slate-505 dark:text-slate-400 mb-6">{rubric.criteriaCount} Evaluation Criteria</p>
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-6">{rubric.criteriaCount} Evaluation Criteria</p>
               </div>
               
               <div className="flex items-center justify-between border-t border-slate-200/50 dark:border-slate-800/80 pt-4 mt-auto">
-                <span className="text-xs text-slate-450 dark:text-slate-500 font-medium" suppressHydrationWarning>Updated {formatDate(rubric.lastUpdated)}</span>
+                <span className="text-xs text-slate-500 font-medium" suppressHydrationWarning>Updated {formatDate(rubric.lastUpdated)}</span>
                 <button 
                   onClick={() => openEditModal(rubric)}
-                  className="text-sm font-bold text-indigo-650 dark:text-indigo-400 hover:text-indigo-850 dark:hover:text-indigo-300 flex items-center cursor-pointer"
+                  className="text-sm font-bold text-primary hover:text-primary-hover flex items-center cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit
                 </button>
@@ -263,50 +263,50 @@ export default function RubricManagerClient({ initialRubrics }) {
               
               <div className="p-5 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 mb-1.5 uppercase tracking-wider">Rubric Title</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider font-heading">Rubric Title</label>
                   <input 
                     type="text" 
                     value={editingRubric.title}
                     onChange={(e) => setEditingRubric({...editingRubric, title: e.target.value})}
                     placeholder="e.g., Data Structures Final Project"
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-border focus:outline-none text-sm transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 mb-1.5 uppercase tracking-wider">Number of Criteria Points</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider font-heading">Number of Criteria Points</label>
                   <input 
                     type="number" 
                     min="1" max="20"
                     value={editingRubric.criteriaCount}
                     onChange={(e) => handleCriteriaCountChange(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-border focus:outline-none text-sm transition-all"
                   />
                 </div>
 
                 <div className="space-y-3 pt-2">
                   <div className="flex justify-between items-center">
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Evaluation Checkpoints</label>
-                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider pr-2 select-none">Points Weight</div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-heading">Evaluation Checkpoints</label>
+                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pr-2 select-none font-heading">Points Weight</div>
                   </div>
                   {editingRubric.criteriaList.map((crit, index) => {
                     const textValue = typeof crit === "string" ? crit : crit.text || "";
                     const pointsValue = typeof crit === "string" ? 10 : (typeof crit.points === "number" ? crit.points : 10);
                     return (
                       <div key={index} className="flex items-center space-x-3">
-                        <span className="text-xs font-bold text-slate-400 w-4 shrink-0">{index + 1}.</span>
+                        <span className="text-xs font-bold text-slate-400 w-4 shrink-0 font-heading">{index + 1}.</span>
                         <input 
                           type="text"
                           value={textValue}
                           onChange={(e) => handleCriteriaChange(index, "text", e.target.value)}
                           placeholder={`Criteria description ${index + 1}`}
-                          className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs transition-all"
+                          className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-border focus:outline-none text-xs transition-all"
                         />
                         <input 
                           type="number"
                           value={pointsValue}
                           onChange={(e) => handleCriteriaChange(index, "points", e.target.value)}
                           placeholder="Pts"
-                          className="w-20 px-2.5 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-center font-bold focus:ring-2 focus:ring-indigo-500/50 focus:outline-none text-xs shrink-0 transition-all"
+                          className="w-20 px-2.5 py-2.5 border border-slate-200 dark:border-slate-805 rounded-xl bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100 text-center font-bold focus:ring-2 focus:ring-primary-border focus:outline-none text-xs shrink-0 transition-all font-heading"
                         />
                       </div>
                     );
@@ -315,13 +315,13 @@ export default function RubricManagerClient({ initialRubrics }) {
               </div>
               
               <div className="p-5 bg-slate-50 dark:bg-slate-950/40 border-t border-slate-200/50 dark:border-slate-800 flex justify-end gap-3 shrink-0">
-                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-405 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer">Cancel</button>
+                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-650 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer">Cancel</button>
                 <motion.button 
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleSave} 
                   disabled={loading}
-                  className="flex items-center px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-650 rounded-xl shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
+                  className="flex items-center px-4 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4 mr-2" /> {loading ? "Saving..." : "Save Rubric"}
                 </motion.button>

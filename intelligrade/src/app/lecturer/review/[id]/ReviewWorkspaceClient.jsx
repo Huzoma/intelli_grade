@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { toggleVivaQuestionAction, submitGradeAction, createCommentAction, deleteCommentAction } from "@/app/actions/grading";
 import { toast } from "sonner";
+import CommentCard from "@/components/CommentCard";
+import TextHighlighter from "@/components/TextHighlighter";
 
 export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubricCriteria }) {
   const router = useRouter();
@@ -115,13 +117,13 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
       id: `viva-${q.id}`,
       text: q.marker,
       type: "viva",
-      color: "bg-indigo-150/80 dark:bg-indigo-950/60 border-b border-indigo-400 dark:border-indigo-600 text-slate-900 dark:text-white",
+      color: "bg-primary-light border-b border-primary text-slate-900 dark:text-white",
     })),
     ...localComments.map(c => ({
       id: `comment-${c.id}`,
       text: c.quote,
       type: "comment",
-      color: "bg-yellow-250/60 dark:bg-yellow-900/40 border-b border-yellow-400 dark:border-yellow-600 text-slate-900 dark:text-white",
+      color: "bg-warning-bg/40 border-b border-warning text-slate-900 dark:text-white",
     }))
   ];
 
@@ -161,74 +163,6 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
         }, 2000);
       }
     }, 200);
-  };
-
-  // Re-usable HTML highlighter
-  const renderParagraph = (paragraphText, paraIndex) => {
-    if (!paragraphText) return null;
-    
-    let matches = [];
-    highlights.forEach(hl => {
-      if (!hl.text) return;
-      let index = -1;
-      while ((index = paragraphText.indexOf(hl.text, index + 1)) !== -1) {
-        matches.push({
-          start: index,
-          end: index + hl.text.length,
-          highlight: hl
-        });
-      }
-    });
-    
-    matches.sort((a, b) => {
-      if (a.start !== b.start) return a.start - b.start;
-      return (b.end - b.start) - (a.end - a.start);
-    });
-    
-    let activeMatches = [];
-    let lastEnd = 0;
-    for (let match of matches) {
-      if (match.start >= lastEnd) {
-        activeMatches.push(match);
-        lastEnd = match.end;
-      }
-    }
-    
-    let result = [];
-    let lastIdx = 0;
-    activeMatches.forEach((match, idx) => {
-      if (match.start > lastIdx) {
-        result.push(paragraphText.substring(lastIdx, match.start));
-      }
-      const hl = match.highlight;
-      result.push(
-        <mark
-          key={`${paraIndex}-${idx}`}
-          id={hl.id}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (hl.type === "viva") {
-              setActiveTab("ai_insights");
-              flashSidebarCard(hl.id);
-            } else {
-              setActiveTab("comments");
-              flashSidebarCard(hl.id);
-            }
-          }}
-          className={`${hl.color} font-normal text-inherit px-0.5 rounded cursor-pointer transition-all hover:brightness-110 active:scale-95`}
-          title={hl.type === "viva" ? "Click to view Viva Question" : "Click to view comment"}
-        >
-          {paragraphText.substring(match.start, match.end)}
-        </mark>
-      );
-      lastIdx = match.end;
-    });
-    
-    if (lastIdx < paragraphText.length) {
-      result.push(paragraphText.substring(lastIdx));
-    }
-    
-    return result.length > 0 ? result : paragraphText;
   };
 
   // Normalize rubricCriteria to object format: { text: string, points: number }
@@ -325,7 +259,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden relative">
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-955 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden relative">
       
       {/* Top Header Workspace Bar */}
       <header className="h-16 border-b border-slate-200/60 dark:border-slate-800/80 bg-slate-950 flex items-center justify-between px-6 shrink-0 z-10 shadow-md">
@@ -333,7 +267,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Link 
               href="/lecturer" 
-              className="flex items-center text-sm font-semibold text-slate-300 dark:text-slate-400 hover:text-indigo-400 transition-colors bg-slate-900/60 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-800 dark:border-slate-800/60 shadow-sm"
+              className="flex items-center text-sm font-semibold text-slate-300 dark:text-slate-400 hover:text-primary transition-colors bg-slate-900/60 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-800 dark:border-slate-805 shadow-sm"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Exit Workspace
@@ -344,7 +278,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
             <h1 className="font-heading text-sm sm:text-base font-bold text-white leading-tight truncate max-w-[200px] sm:max-w-xs">
               {submission.docTitle}
             </h1>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-450 font-semibold mt-0.5">
               {submission.studentName} • {submission.matricNo}
             </p>
           </div>
@@ -367,21 +301,21 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
           </div>
 
           <motion.button 
-            whileHover={{ scale: 1.03 }} 
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
             onClick={handleSaveDraft}
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 rounded-xl hover:bg-indigo-500/20 disabled:opacity-50 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-primary bg-primary-light border border-primary-border rounded-xl hover:bg-primary-light/80 disabled:opacity-50 transition-colors cursor-pointer uppercase tracking-wider"
           >
             Save Draft
           </motion.button>
           
           <motion.button 
-            whileHover={{ scale: 1.03 }} 
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
             onClick={handleSubmitFinalGrade}
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-650 rounded-xl hover:bg-indigo-700 hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+            className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary-hover shadow-sm disabled:opacity-50 transition-all cursor-pointer uppercase tracking-wider"
           >
             Submit Final Grade
           </motion.button>
@@ -399,26 +333,26 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
               <button
                 type="button"
                 onClick={() => setViewMode("reader")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "reader" ? "bg-indigo-655 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "reader" ? "bg-primary text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
               >
                 📖 Interactive Reader
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("pdf")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "pdf" ? "bg-indigo-650 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "pdf" ? "bg-primary text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
               >
                 📄 Original PDF
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("summary")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "summary" ? "bg-indigo-650 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "summary" ? "bg-primary text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}
               >
                 📝 AI Summary & Details
               </button>
             </div>
-            <span className="text-xs font-semibold text-slate-550 dark:text-slate-400">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {viewMode === "reader" ? "Interactive Reader Mode" : viewMode === "pdf" ? "Original PDF View" : "Generated Academic Insights"}
             </span>
           </div>
@@ -457,7 +391,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   onKeyUp={handleTextSelection}
                 >
                   <div className="border-b pb-6 mb-8 border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-mono uppercase tracking-wider text-indigo-650 dark:text-indigo-400 font-bold">
+                    <span className="text-xs font-mono uppercase tracking-wider text-primary font-bold">
                       Interactive Document Reader
                     </span>
                     <h2 className="text-2xl font-bold mt-2 text-slate-850 dark:text-slate-100">
@@ -471,8 +405,21 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   <div className="space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed text-base">
                     {submission.fullText ? (
                       submission.fullText.split("\n\n").map((para, paraIdx) => (
-                        <p key={paraIdx} className="paragraph-block">
-                          {renderParagraph(para, paraIdx)}
+                        <p key={paraIdx} className="paragraph-block select-text">
+                          <TextHighlighter
+                            paragraphText={para}
+                            paraIndex={paraIdx}
+                            highlights={highlights}
+                            onHighlightClick={(e, hl) => {
+                              if (hl.type === "viva") {
+                                setActiveTab("ai_insights");
+                                flashSidebarCard(hl.id);
+                              } else {
+                                setActiveTab("comments");
+                                flashSidebarCard(hl.id);
+                              }
+                            }}
+                          />
                         </p>
                       ))
                     ) : (
@@ -493,18 +440,18 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                 /* Document Presentation Layer */
                 <div className="p-12 space-y-6 select-text">
                   <div className="border-b pb-6 mb-8 border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-mono uppercase tracking-wider text-indigo-655 dark:text-indigo-400 font-bold">Academic Evaluation Document</span>
+                    <span className="text-xs font-mono uppercase tracking-wider text-primary font-bold">Academic Evaluation Document</span>
                     <h2 className="text-2xl font-bold mt-2 text-slate-850 dark:text-slate-100">{submission.docTitle}</h2>
-                    <p className="text-sm text-slate-505 dark:text-slate-400 mt-1" suppressHydrationWarning>Submitted by {submission.studentName} ({submission.matricNo}) on {new Date(submission.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1" suppressHydrationWarning>Submitted by {submission.studentName} ({submission.matricNo}) on {new Date(submission.date).toLocaleDateString()}</p>
                   </div>
                   
-                  <div className="space-y-4 text-slate-755 dark:text-slate-300 leading-relaxed text-sm">
+                  <div className="space-y-4 text-slate-600 dark:text-slate-355 leading-relaxed text-sm">
                     <p className="font-semibold text-slate-900 dark:text-white">Document Summary:</p>
                     <p className="whitespace-pre-line">{submission.summary || "No academic summary generated for this document."}</p>
                     
-                    <div className="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-205 dark:border-slate-800 space-y-2">
                       <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Document Metadata</p>
-                      <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-750 dark:text-slate-350">
+                      <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-600 dark:text-slate-400">
                         <div>File Path: <code className="bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded">{submission.filePath}</code></div>
                         <div>File Size: <span className="font-semibold">{submission.fileSize}</span></div>
                         <div>Type Class: <span className="font-semibold capitalize">{submission.type.replace("_", " ")}</span></div>
@@ -535,16 +482,16 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 flex items-center justify-center py-3 text-sm font-semibold border-b-2 transition-all cursor-pointer relative rounded-t-lg ${
                     isActive
-                      ? "text-indigo-650 dark:text-indigo-400 bg-white dark:bg-slate-900 shadow-sm border-t border-x border-slate-250 dark:border-slate-800"
+                      ? "text-primary bg-white dark:bg-slate-900 shadow-sm border-t border-x border-slate-200 dark:border-slate-800"
                       : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                   }`}
                 >
-                  <tab.icon className={`w-4 h-4 mr-2 ${isActive ? "text-indigo-650 dark:text-indigo-400" : "text-slate-405 dark:text-slate-500"}`} />
+                  <tab.icon className={`w-4 h-4 mr-2 ${isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"}`} />
                   {tab.label}
                   {isActive && (
                     <motion.div
                       layoutId="assistantTabIndicator"
-                      className="absolute bottom-[-2px] left-0 right-0 h-[2px] bg-indigo-650 dark:bg-indigo-400"
+                      className="absolute bottom-[-2px] left-0 right-0 h-[2px] bg-primary"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -566,12 +513,12 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   className="space-y-8"
                 >
                   {/* Authenticity Flag */}
-                  <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-5 transition-colors">
+                  <div className="bg-success-bg border border-success-border rounded-xl p-5 transition-colors">
                     <div className="flex items-start">
-                      <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mt-0.5 mr-3 shrink-0" />
+                      <ShieldCheck className="w-6 h-6 text-success mt-0.5 mr-3 shrink-0" />
                       <div>
-                        <h3 className="font-heading text-sm font-bold text-emerald-900 dark:text-emerald-300">Authenticity Verified</h3>
-                        <p className="text-xs text-emerald-700 dark:text-emerald-455 mt-1 leading-relaxed">
+                        <h3 className="font-heading text-sm font-bold text-slate-900 dark:text-white">Authenticity Verified</h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
                           IntelliGrade detects a <span className="font-bold">{submission.aiScore}% probability</span> of AI generation. This text exhibits natural human variance.
                         </p>
                       </div>
@@ -582,10 +529,10 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-heading text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                        <BrainCircuit className="w-4 h-4 mr-2 text-indigo-655 dark:text-indigo-400" />
+                        <BrainCircuit className="w-4 h-4 mr-2 text-primary" />
                         Suggested Viva Questions
                       </h3>
-                      <span className="text-[9px] font-extrabold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/50 text-indigo-750 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-200/50 dark:border-indigo-900/30">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider bg-primary-light text-primary px-2 py-0.5 rounded-full border border-primary-border">
                         Auto-Generated
                       </span>
                     </div>
@@ -603,18 +550,18 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                             transition={{ type: "spring", stiffness: 400, damping: 30 }}
                             className={`p-4 rounded-xl border transition-all ${
                               q.added 
-                                ? "bg-indigo-50/50 dark:bg-indigo-950/25 border-indigo-200 dark:border-indigo-900/50 shadow-sm" 
-                                : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-750/50"
+                                ? "bg-primary-light/50 border-primary-border shadow-sm" 
+                                : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-primary-border"
                             }`}
                           >
                             <p className="text-sm text-slate-700 dark:text-slate-350 leading-relaxed mb-3">{q.text}</p>
                             {q.marker && (
                               <div 
                                 onClick={() => handleScrollToHighlight(`viva-${q.id}`)}
-                                className="mb-3.5 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-250/50 dark:border-slate-800/60 text-[11px] text-slate-505 dark:text-slate-400/90 italic cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-700 transition-all leading-normal select-text"
+                                className="mb-3.5 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 italic cursor-pointer hover:border-primary-border transition-all leading-normal select-text"
                                 title="Click to locate in document reader"
                               >
-                                <span className="font-bold text-[9px] uppercase tracking-wider text-indigo-650 dark:text-indigo-400 block not-italic mb-1 font-heading">
+                                <span className="font-bold text-[9px] uppercase tracking-wider text-primary block not-italic mb-1 font-heading">
                                   Evidence from Document (Click to locate):
                                 </span>
                                 &quot;{q.marker}&quot;
@@ -623,7 +570,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                             <button 
                               onClick={() => handleToggleQuestion(q.id, q.added)}
                               className={`text-xs font-semibold flex items-center transition-colors cursor-pointer ${
-                                q.added ? "text-indigo-650 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-405 hover:text-indigo-650 dark:hover:text-indigo-400"
+                                q.added ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
                               }`}
                             >
                               {q.added ? (
@@ -647,7 +594,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                           <motion.span 
                             whileHover={{ scale: 1.05 }} 
                             key={i} 
-                            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-950 text-slate-650 dark:text-slate-400 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 transition-colors cursor-default"
+                            className="px-2.5 py-1.5 bg-slate-105 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800/40 transition-colors cursor-default"
                           >
                             {tag.trim()}
                           </motion.span>
@@ -669,9 +616,9 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   transition={{ duration: 0.18 }}
                   className="space-y-6"
                 >
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-xl flex items-start transition-colors">
-                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-455 mr-3 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                  <div className="p-4 bg-warning-bg border border-warning-border rounded-xl flex items-start transition-colors">
+                    <AlertCircle className="w-5 h-5 text-warning mr-3 shrink-0 mt-0.5" />
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-semibold">
                       Checking checkboxes below will dynamically suggest an academic grade based on rubric completion.
                     </p>
                   </div>
@@ -690,7 +637,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                             onChange={() => handleCheckboxChange(i)} 
                             className="peer sr-only" 
                           />
-                          <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 rounded peer-checked:bg-indigo-650 peer-checked:border-indigo-650 dark:peer-checked:bg-indigo-500 dark:peer-checked:border-indigo-500 transition-colors"></div>
+                          <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 rounded peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
                           <CheckCircle2 className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                         </div>
                         <div className="flex-1 flex justify-between items-start gap-4">
@@ -699,8 +646,8 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                           </span>
                           <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border shrink-0 ${
                             crit.points > 0 
-                              ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/40" 
-                              : "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/40"
+                              ? "bg-success-bg border-success-border text-success" 
+                              : "bg-danger-bg border-danger-border text-danger"
                           }`}>
                             {crit.points > 0 ? `+${crit.points} pts` : `${crit.points} pts`}
                           </span>
@@ -730,32 +677,31 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                       animation: cardFlash 2s cubic-bezier(0.16, 1, 0.3, 1) !important;
                     }
                     @keyframes highlightFlash {
-                      0% { background-color: rgba(250, 204, 21, 0.8) !important; color: #000 !important; }
-                      50% { background-color: rgba(250, 204, 21, 0.5) !important; }
+                      0% { background-color: var(--primary-light) !important; color: var(--primary) !important; }
                       100% { }
                     }
                     @keyframes cardFlash {
-                      0% { border-color: #6366f1 !important; background-color: rgba(99, 102, 241, 0.15) !important; }
+                      0% { border-color: var(--primary) !important; background-color: var(--primary-light) !important; }
                       100% { }
                     }
                   `}</style>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-heading text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                      <MessageSquare className="w-4 h-4 mr-2 text-indigo-650 dark:text-indigo-400" />
+                      <MessageSquare className="w-4 h-4 mr-2 text-primary" />
                       Lecturer Annotations
                     </h3>
-                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-300 px-2 py-0.5 rounded-full">
                       {localComments.length} comments
                     </span>
                   </div>
 
                   {/* Text Highlight Comment Creator Form */}
                   {selectedText ? (
-                    <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-indigo-200 dark:border-indigo-900/40 relative shadow-sm">
-                      <span className="text-[9px] font-extrabold text-indigo-650 dark:text-indigo-400 block mb-1.5 uppercase tracking-wider">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-primary-border relative shadow-sm">
+                      <span className="text-[9px] font-extrabold text-primary block mb-1.5 uppercase tracking-wider">
                         Adding Feedback on:
                       </span>
-                      <blockquote className="text-xs italic text-slate-650 dark:text-slate-400 border-l-2 border-indigo-505 pl-2.5 py-1 mb-3.5 bg-white dark:bg-slate-900 rounded-r max-h-24 overflow-y-auto select-text leading-relaxed">
+                      <blockquote className="text-xs italic text-slate-600 dark:text-slate-400 border-l-2 border-primary-border pl-2.5 py-1 mb-3.5 bg-white dark:bg-slate-900 rounded-r max-h-24 overflow-y-auto select-text leading-relaxed">
                         &quot;{selectedText}&quot;
                       </blockquote>
                       <textarea
@@ -764,7 +710,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                         rows={3}
                         value={newCommentText}
                         onChange={(e) => setNewCommentText(e.target.value)}
-                        className="w-full text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white transition-all resize-none"
+                        className="w-full text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-border text-slate-900 dark:text-white transition-all resize-none"
                       />
                       <div className="flex justify-end space-x-2 mt-3">
                         <button
@@ -772,20 +718,20 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                             setSelectedText("");
                             setNewCommentText("");
                           }}
-                          className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-705 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           onClick={handleSaveComment}
-                          className="bg-indigo-650 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center shadow-sm hover:shadow cursor-pointer"
+                          className="bg-primary hover:bg-primary-hover text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center shadow-sm hover:shadow cursor-pointer"
                         >
                           Save Comment
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl text-xs text-indigo-800 dark:text-indigo-300 leading-normal mb-4">
+                    <div className="p-3 bg-primary-light border border-primary-border rounded-xl text-xs text-slate-700 dark:text-slate-300 leading-normal mb-4 font-semibold">
                       💡 <strong>Tip:</strong> Highlight any text inside the <em>Interactive Reader</em> to add a remote feedback comment directly tied to that passage.
                     </div>
                   )}
@@ -794,45 +740,19 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   {localComments.length > 0 ? (
                     <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
                       {localComments.map((c) => (
-                        <motion.div
+                        <CommentCard
                           key={c.id}
-                          id={`comment-card-${c.id}`}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="p-4 bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl relative group hover:border-indigo-300 dark:hover:border-indigo-900/50 transition-all shadow-sm"
-                        >
-                          <button
-                            onClick={() => handleDeleteComment(c.id)}
-                            className="absolute top-3 right-3 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer"
-                            title="Delete Comment"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          <p className="text-sm font-semibold text-slate-850 dark:text-slate-200 pr-6 leading-normal select-text">
-                            {c.text}
-                          </p>
-                          <div 
-                            onClick={() => handleScrollToHighlight(`comment-${c.id}`)}
-                            className="mt-2.5 p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 italic hover:border-indigo-400 dark:hover:border-indigo-700 cursor-pointer transition-all leading-normal select-text"
-                            title="Click to locate in document reader"
-                          >
-                            <span className="font-bold text-[9px] uppercase tracking-wider text-indigo-650 dark:text-indigo-400 block not-italic mb-0.5">
-                              Quoted Context (Click to locate):
-                            </span>
-                            &quot;{c.quote}&quot;
-                          </div>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-2" suppressHydrationWarning>
-                            {new Date(c.date).toLocaleString()}
-                          </span>
-                        </motion.div>
+                          comment={c}
+                          onDelete={handleDeleteComment}
+                          onFocusQuote={handleScrollToHighlight}
+                        />
                       ))}
                     </div>
                   ) : !selectedText ? (
                     <div className="flex flex-col h-full min-h-60 justify-center items-center text-center p-4">
-                      <MessageSquare className="w-10 h-10 text-slate-400 dark:text-slate-655 mb-3" />
+                      <MessageSquare className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-3" />
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">No comments yet</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-64">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-64 font-semibold">
                         Highlight text in the document reader to add contextual comments.
                       </p>
                     </div>
@@ -861,7 +781,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
               if (input) input.focus();
             }, 100);
           }}
-          className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-indigo-550 flex items-center space-x-1.5 transition-all animate-in fade-in zoom-in-95 duration-100 cursor-pointer"
+          className="bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-primary-border flex items-center space-x-1.5 transition-all animate-in fade-in zoom-in-95 duration-100 cursor-pointer"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           <span>Add Comment</span>

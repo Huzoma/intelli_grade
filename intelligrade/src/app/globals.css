@@ -5,17 +5,61 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(226, 232, 240, 0.6);
-  --glass-shadow: 0 10px 30px -5px rgba(79, 70, 229, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+  
+  --primary: #4f46e5; /* Indigo 600 */
+  --primary-hover: #4338ca; /* Indigo 700 */
+  --primary-light: rgba(79, 70, 229, 0.05);
+  --primary-border: rgba(79, 70, 229, 0.15);
+  
+  --success: #10b981; /* Emerald 500 */
+  --success-bg: rgba(16, 185, 129, 0.06);
+  --success-border: rgba(16, 185, 129, 0.15);
+  
+  --warning: #d97706; /* Amber 600 */
+  --warning-bg: rgba(217, 119, 6, 0.06);
+  --warning-border: rgba(217, 119, 6, 0.15);
+  
+  --danger: #e11d48; /* Rose 600 */
+  --danger-bg: rgba(225, 29, 72, 0.06);
+  --danger-border: rgba(225, 29, 72, 0.15);
+  
+  --review: #7c3aed; /* Violet 600 */
+  --review-bg: rgba(124, 58, 237, 0.06);
+  --review-border: rgba(124, 58, 237, 0.15);
+
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
 }
 
 .dark {
-  --background: #090d16;
+  --background: #090d16; /* Deep obsidian */
   --foreground: #f8fafc;
-  --glass-bg: rgba(13, 18, 30, 0.7);
-  --glass-border: rgba(30, 41, 59, 0.5);
-  --glass-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  
+  --primary: #6366f1; /* Indigo 500 */
+  --primary-hover: #818cf8; /* Indigo 400 */
+  --primary-light: rgba(99, 102, 241, 0.1);
+  --primary-border: rgba(99, 102, 241, 0.3);
+  
+  --success: #34d399; /* Emerald 400 */
+  --success-bg: rgba(52, 211, 153, 0.1);
+  --success-border: rgba(52, 211, 153, 0.2);
+  
+  --warning: #fbbf24; /* Amber 400 */
+  --warning-bg: rgba(251, 191, 36, 0.1);
+  --warning-border: rgba(251, 191, 36, 0.2);
+  
+  --danger: #fb7185; /* Rose 400 */
+  --danger-bg: rgba(251, 113, 133, 0.1);
+  --danger-border: rgba(251, 113, 133, 0.2);
+  
+  --review: #a78bfa; /* Violet 400 */
+  --review-bg: rgba(167, 139, 250, 0.1);
+  --review-border: rgba(167, 139, 250, 0.2);
+
+  --glass-bg: rgba(13, 18, 30, 0.8);
+  --glass-border: rgba(30, 41, 59, 0.7);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
 }
 
 @theme inline {
@@ -23,6 +67,28 @@
   --color-foreground: var(--foreground);
   --color-glass-bg: var(--glass-bg);
   --color-glass-border: var(--glass-border);
+  
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-border: var(--primary-border);
+  
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  
+  --color-review: var(--review);
+  --color-review-bg: var(--review-bg);
+  --color-review-border: var(--review-border);
+  
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
@@ -44,13 +110,9 @@ body {
 }
 
 .glass-panel-hover:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 12px 40px -5px rgba(79, 70, 229, 0.1), 0 6px 16px -2px rgba(0, 0, 0, 0.04);
+  border-color: var(--primary-border);
+  box-shadow: var(--glass-shadow);
 }
 
-.dark .glass-panel-hover:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 12px 40px -5px rgba(0, 0, 0, 0.6), 0 6px 16px -2px rgba(0, 0, 0, 0.4);
-}
 
 
