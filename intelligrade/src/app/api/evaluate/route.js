@@ -3,6 +3,25 @@ import { prisma } from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
 
+// Helper function to safely isolate and parse JSON from LLM output
+function cleanAndParseJSON(rawText) {
+  if (!rawText) throw new Error("Empty response received from AI model.");
+  
+  // Strip out markdown code fences
+  let cleaned = rawText.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+  
+  // Extract strictly the outermost JSON object bounds
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    throw new Error("No valid JSON structure found in the AI response.");
+  }
+  
+  cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+  return JSON.parse(cleaned);
+}
+
 export async function POST(request) {
   let submissionId = null;
   try {
@@ -71,7 +90,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   ]
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const url = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$){apiKey}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -111,14 +130,33 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
       const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (responseText) {
-        const parsed = JSON.parse(responseText.trim());
+        const parsed = cleanAndParseJSON(responseText);
         console.log("[AI Evaluation] Live API response received successfully:", parsed);
+        
         docTitle = parsed.title || submission.docTitle;
         summary = parsed.summary || "";
         aiScore = typeof parsed.aiScore === "number" ? parsed.aiScore : 15;
-        entities = parsed.entities || "";
+        
+        // Normalize entities whether returned as array or string
+        if (Array.isArray(parsed.entities)) {
+          entities = parsed.entities.join(", ");
+        } else if (typeof parsed.entities === "string") {
+          entities = parsed.entities;
+        } else {
+          entities = "";
+        }
+        
         fullText = parsed.fullText || "";
-        vivaQuestions = Array.isArray(parsed.vivaQuestions) ? parsed.vivaQuestions : [];
+        
+        // Normalize viva questions format
+        if (Array.isArray(parsed.vivaQuestions)) {
+          vivaQuestions = parsed.vivaQuestions
+            .map(q => ({
+              text: q.text || q.question || "",
+              marker: q.marker || q.evidence || q.context || ""
+            }))
+            .filter(q => q.text.trim().length > 0);
+        }
       } else {
         throw new Error("Gemini returned an empty response body.");
       }
@@ -128,7 +166,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
     }
 
     if (vivaQuestions.length === 0) {
-      throw new Error("Gemini API failed to generate any viva questions.");
+      throw new Error("Gemini API failed to generate valid viva questions.");
     }
 
     // 4. Update the Submission status to needs_grading and bind scores, summary, entities & fullText
@@ -169,7 +207,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   } catch (error) {
     console.error("[AI Evaluation] Evaluation API error:", error);
     
-    // Clean up / rollback the created submission so we don't leave corrupted or empty records in the database
+    // Clean up / rollback the created submission to prevent dangling records
     if (submissionId) {
       try {
         const subToDelete = await prisma.submission.findUnique({
