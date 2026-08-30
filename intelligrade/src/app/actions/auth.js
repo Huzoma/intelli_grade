@@ -44,7 +44,7 @@ export async function loginAction(email, password, roleOverride) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.cookieStore.set("intelligrade_session", JSON.stringify({ userId: user.id, role: user.role }), {
+  cookieStore.set("intelligrade_session", JSON.stringify({ userId: user.id, role: user.role }), {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
