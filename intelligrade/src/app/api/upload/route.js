@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { getCurrentUser } from "@/app/actions/auth";
@@ -22,18 +22,17 @@ export async function POST(request) {
       return NextResponse.json({ error: "Missing file or type" }, { status: 400 });
     }
 
-    // 3. Convert file buffer and save to local public uploads
+    // 3. Convert file buffer and save to Vercel's temporary directory
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
     const fileExt = path.extname(file.name) || ".pdf";
     const filename = `${crypto.randomUUID()}${fileExt}`;
-    const filePath = path.join(uploadsDir, filename);
+    const filePath = path.join("/tmp", filename); // Route directly to Vercel's writable /tmp
+    
     await writeFile(filePath, buffer);
 
+    // Maintain the mock public path so the frontend UI renders correctly during the demo
     const dbFilePath = `/uploads/${filename}`;
 
     // 4. Match Rubric dynamically
