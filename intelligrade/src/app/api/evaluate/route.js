@@ -23,10 +23,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    // 2. Read PDF file from disk and convert to Base64
+    // 2. Read PDF file from Vercel's /tmp disk and convert to Base64
     let base64Data = "";
     try {
-      const filePath = path.join(process.cwd(), "public", submission.filePath);
+      const filename = path.basename(submission.filePath);
+      const filePath = path.join("/tmp", filename); 
       const fileBuffer = await fs.readFile(filePath);
       base64Data = fileBuffer.toString("base64");
     } catch (readErr) {
@@ -70,7 +71,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   ]
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -176,7 +177,8 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
         });
         if (subToDelete) {
           await prisma.submission.delete({ where: { id: submissionId } });
-          const filePath = path.join(process.cwd(), "public", subToDelete.filePath);
+          const filename = path.basename(subToDelete.filePath);
+          const filePath = path.join("/tmp", filename); 
           await fs.unlink(filePath).catch(() => {});
           console.log(`[AI Evaluation] Rollback successful: Deleted submission database record and file for ID: ${submissionId}`);
         }
