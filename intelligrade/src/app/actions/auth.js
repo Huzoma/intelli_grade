@@ -10,9 +10,29 @@ function hashPassword(password) {
 }
 
 export async function loginAction(email, password, roleOverride) {
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { email },
   });
+
+  // Auto-seed demo users on the fly if they don't exist in the remote database yet
+  if (!user && (email === "uzoma@university.edu" || email === "eric@university.edu")) {
+    try {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: email === "uzoma@university.edu" ? "Uzoma Iyke" : "Eric Lecturer",
+          password: hashPassword("password"),
+          role: email === "uzoma@university.edu" ? "STUDENT" : "LECTURER",
+          department: "Computer Science",
+          level: "400",
+          matricNo: email === "uzoma@university.edu" ? "FUPRE/CS/21/1234" : null,
+        },
+      });
+    } catch (e) {
+      // If creation fails due to race conditions, try fetching again
+      user = await prisma.user.findUnique({ where: { email } });
+    }
+  }
 
   if (!user || user.password !== hashPassword(password)) {
     return { error: "Invalid email or password" };
@@ -24,7 +44,7 @@ export async function loginAction(email, password, roleOverride) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set("intelligrade_session", JSON.stringify({ userId: user.id, role: user.role }), {
+  cookieStore.cookieStore.set("intelligrade_session", JSON.stringify({ userId: user.id, role: user.role }), {
     httpOnly: true,
     path: "/",
     secure: process.env.NODE_ENV === "production",
@@ -77,13 +97,23 @@ export async function toggleDemoUserAction() {
     } catch (e) {}
   }
 
-  // Get the default seeded user of the target role
-  const user = await prisma.user.findFirst({
-    where: { 
-      role: targetRole,
-      email: targetRole === "STUDENT" ? "uzoma@university.edu" : "eric@university.edu"
-    },
+  const targetEmail = targetRole === "STUDENT" ? "uzoma@university.edu" : "eric@university.edu";
+  let user = await prisma.user.findFirst({
+    where: { email: targetEmail },
   });
+
+  if (!user) {
+    // Auto-create if missing during toggle
+    user = await prisma.user.create({
+      data: {
+        email: targetEmail,
+        name: targetRole === "STUDENT" ? "Uzoma Iyke" : "Eric Lecturer",
+        password: hashPassword("password"),
+        role: targetRole,
+        department: "Computer Science",
+      },
+    });
+  }
 
   if (user) {
     cookieStore.set("intelligrade_session", JSON.stringify({ userId: user.id, role: user.role }), {
