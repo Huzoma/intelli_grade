@@ -144,65 +144,57 @@ export default function StudentDashboardClient({ user, submissions, metrics }) {
         </div>
 
         {/* Recent Submissions Table */}
-        <div className="lg:col-span-2">
-          <Table 
-            headers={["Document Title", "Type", "Status"]} 
-            isEmpty={submissions.length === 0}
-            emptyMessage="No submissions yet. Click 'Start Upload' to submit your first document."
-          >
-            {submissions.map((sub) => {
-              const isClickable = sub.status !== "processing";
-              const content = (
-                <TableRow key={sub.id}>
-                  <TableCell className="font-semibold text-slate-800 dark:text-slate-200">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-primary-light text-primary rounded-lg">
-                        <FileText className="w-4 h-4" />
+        <div className="lg:col-span-2 overflow-hidden">
+          <div className="overflow-x-auto w-full">
+            <Table 
+              headers={["Document Title", "Type", "Status"]} 
+              isEmpty={submissions.length === 0}
+              emptyMessage="No submissions yet. Click 'Start Upload' to submit your first document."
+            >
+              {submissions.map((sub) => {
+                const isClickable = sub.status !== "processing";
+                const content = (
+                  <TableRow key={sub.id}>
+                    <TableCell className="font-semibold text-slate-800 dark:text-slate-200 min-w-[200px]">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary-light text-primary rounded-lg shrink-0">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold max-w-[150px] sm:max-w-[250px]" title={sub.docTitle}>{sub.docTitle}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold mt-0.5 whitespace-nowrap" suppressHydrationWarning>
+                            {formatDate(sub.createdAt)} • {sub.fileSize}
+                          </p>
+                        </div>
                       </div>
-                      <div className="truncate max-w-[180px] sm:max-w-xs">
-                        <p className="truncate font-semibold">{sub.docTitle}</p>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5" suppressHydrationWarning>
-                          {formatDate(sub.createdAt)} • {sub.fileSize}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border ${getTypeBadgeClass(sub.type)}`}>
-                      {getSubmissionTypeLabel(sub.type)}
-                    </span>
-                  </TableCell>
-                  <TableCell align="right">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusClass(sub.status)}`}>
-                      {getStatusLabel(sub.status)}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              );
-
-              if (isClickable) {
-                return (
-                  <Link key={sub.id} href={`/student/review/${sub.id}`} className="contents">
-                    {content}
-                  </Link>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <span className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 inline-block ${getTypeBadgeClass(sub.type)}`}>
+                        {getSubmissionTypeLabel(sub.type)}
+                      </span>
+                    </TableCell>
+                    <TableCell align="right" className="whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap shrink-0 ${getStatusClass(sub.status)}`}>
+                        {getStatusLabel(sub.status)}
+                      </span>
+                    </TableCell>
+                  </TableRow>
                 );
-              }
 
-              return content;
-            })}
-          </Table>
+                if (isClickable) {
+                  return (
+                    <Link key={sub.id} href={`/student/review/${sub.id}`} className="contents">
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return content;
+              })}
+            </Table>
+          </div>
         </div>
       </motion.div>
     </motion.div>
   );
 }
-
-
-
-
-
-
-
-
-
-
