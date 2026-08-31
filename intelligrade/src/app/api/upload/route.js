@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import path from "path";
 import { getCurrentUser } from "@/app/actions/auth";
+
+// Initialize Supabase client with the Service Role Key to bypass RLS for uploads
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST(request) {
   try {
@@ -22,20 +28,32 @@ export async function POST(request) {
       return NextResponse.json({ error: "Missing file or type" }, { status: 400 });
     }
 
-    // 3. Convert file buffer and save to Vercel's temporary directory
+    // 3. Convert file buffer and generate unique filename
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
     const fileExt = path.extname(file.name) || ".pdf";
     const filename = `${crypto.randomUUID()}${fileExt}`;
-    const filePath = path.join("/tmp", filename); // Route directly to Vercel's writable /tmp
-    
-    await writeFile(filePath, buffer);
 
-    // Maintain the mock public path so the frontend UI renders correctly during the demo
-    const dbFilePath = `/uploads/${filename}`;
+    // 4. Upload directly to Supabase Storage bucket
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("documents")
+      .upload(filename, buffer, {
+        contentType: "application/pdf",
+        upsert: false,
+      });
 
-    // 4. Match Rubric dynamically
+    if (uploadError) {
+      throw new Error("Supabase Storage error: " + uploadError.message);
+    }
+
+    // 5. Retrieve the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from("documents")
+      .getPublicUrl(filename);
+
+    const dbFilePath = publicUrlData.publicUrl;
+
+    // 6. Match Rubric dynamically
     let rubricTitle = "Standard SIWES IT Report";
     if (type === "project_proposal") {
       rubricTitle = "Final Year Project Proposal";
@@ -44,12 +62,12 @@ export async function POST(request) {
     }
 
     const rubric = await prisma.rubric.findFirst({
-      where: { title: rubricTitle }
+      where: { title: rubricTitle },
     });
 
-    // 5. Match default Lecturer
+    // 7. Match default Lecturer
     const lecturer = await prisma.user.findFirst({
-      where: { role: "LECTURER" }
+      where: { role: "LECTURER" },
     });
 
     // Helper to format file size
@@ -61,7 +79,7 @@ export async function POST(request) {
       return parseFloat((bytesVal / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
-    // 6. Create Submission record in database
+    // 8. Create Submission record in database
     const submission = await prisma.submission.create({
       data: {
         docTitle: file.name,
@@ -72,7 +90,7 @@ export async function POST(request) {
         studentId: user.id,
         lecturerId: lecturer?.id || null,
         rubricId: rubric?.id || null,
-      }
+      },
     });
 
     return NextResponse.json({ success: true, submissionId: submission.id });
