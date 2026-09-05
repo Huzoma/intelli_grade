@@ -324,7 +324,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
 
       {/* Main Split Workspace */}
       <main className="flex-1 flex overflow-hidden">
-               {/* Left Pane: PDF Viewer Area */}
+        {/* Left Pane: PDF Viewer Area */}
         <section className="flex-1 flex flex-col bg-slate-100/30 dark:bg-slate-900/20 relative overflow-hidden">
           
           {/* View Mode Switcher */}
@@ -403,39 +403,19 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                   </div>
                   
                   <div className="space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed text-base">
-                    {submission.fullText ? (
-                      submission.fullText.split("\n\n").map((para, paraIdx) => (
-                        <p key={paraIdx} className="paragraph-block select-text">
-                          <TextHighlighter
-                            paragraphText={para}
-                            paraIndex={paraIdx}
-                            highlights={highlights}
-                            onHighlightClick={(e, hl) => {
-                              if (hl.type === "viva") {
-                                setActiveTab("ai_insights");
-                                flashSidebarCard(hl.id);
-                              } else {
-                                setActiveTab("comments");
-                                flashSidebarCard(hl.id);
-                              }
-                            }}
-                          />
-                        </p>
-                      ))
-                    ) : (
-                      <p className="italic text-slate-500">
-                        No full-text representation available. Please view the original PDF.
-                      </p>
-                    )}
+                    <iframe 
+                      src={submission.filePath} 
+                      className="w-full min-h-[800px] rounded-lg border border-slate-200 dark:border-slate-800 bg-white" 
+                      title="Student Submission Document" 
+                    />
                   </div>
                 </div>
               ) : viewMode === "pdf" ? (
-                <iframe
-                  src={submission.filePath}
-                  className="w-full border-0"
-                  style={{ height: '78vh' }}
-                  title={submission.docTitle}
-                />
+                <iframe 
+                  src={submission.filePath} 
+                  className="w-full min-h-[800px] rounded-lg border border-slate-800 bg-white" 
+                  title="Student Submission Document" 
+                />  
               ) : (
                 /* Document Presentation Layer */
                 <div className="p-12 space-y-6 select-text">
@@ -732,7 +712,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                     </div>
                   ) : (
                     <div className="p-3 bg-primary-light border border-primary-border rounded-xl text-xs text-slate-700 dark:text-slate-300 leading-normal mb-4 font-semibold">
-                      💡 <strong>Tip:</strong> Highlight any text inside the <em>Interactive Reader</em> to add a remote feedback comment directly tied to that passage.
+                      💡 <strong>Tip:</strong> You can add direct feedback notes for the student using the general comment form.
                     </div>
                   )}
 
@@ -753,7 +733,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                       <MessageSquare className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-3" />
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">No comments yet</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-64 font-semibold">
-                        Highlight text in the document reader to add contextual comments.
+                        Add contextual feedback notes to share with the student.
                       </p>
                     </div>
                   ) : null}
