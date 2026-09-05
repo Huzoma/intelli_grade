@@ -12,20 +12,15 @@ import { toast } from "sonner";
 import CommentCard from "@/components/CommentCard";
 import dynamic from "next/dynamic";
 
-// Static import for PDF.js configuration
-import { pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-
-// Safely route the worker through unpkg
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-// Native Next.js Dynamic Imports (Bypasses SSR without useEffect state hacks)
-const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { 
+// Strict SSR isolation: The server will never attempt to parse or render this component
+const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
   ssr: false,
-  loading: () => <div className="animate-pulse flex space-x-4 p-12"><div className="h-4 bg-slate-300 dark:bg-slate-700 rounded w-3/4"></div></div>
+  loading: () => (
+    <div className="animate-pulse flex space-x-4 p-12 w-full justify-center">
+      <div className="h-4 bg-slate-300 dark:bg-slate-700 rounded w-64"></div>
+    </div>
+  ),
 });
-const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
 export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubricCriteria }) {
   const router = useRouter();
@@ -36,14 +31,11 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState("reader"); 
   
-  const [numPages, setNumPages] = useState(null);
   const [localComments, setLocalComments] = useState(submission.comments || []);
   const [selectedText, setSelectedText] = useState("");
   const [newCommentText, setNewCommentText] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipCoords, setTooltipCoords] = useState({ x: 0, y: 0 });
-
-  const onDocumentLoadSuccess = ({ numPages }) => setNumPages(numPages);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -208,24 +200,7 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
 
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-200/50 dark:bg-slate-900/50" onMouseUp={handleTextSelection} onKeyUp={handleTextSelection}>
             {viewMode === "reader" ? (
-              <div className="flex flex-col items-center select-text">
-                <Document
-                  file={submission.filePath}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  className="flex flex-col items-center gap-6"
-                >
-                  {Array.from(new Array(numPages || 0), (el, index) => (
-                    <div key={`page_${index + 1}`} className="shadow-lg border border-slate-200 dark:border-slate-700 bg-white">
-                      <Page 
-                        pageNumber={index + 1} 
-                        width={800 * (zoom / 100)}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                      />
-                    </div>
-                  ))}
-                </Document>
-              </div>
+              <PdfViewer fileUrl={submission.filePath} zoom={zoom} />
             ) : (
               <div className="bg-white dark:bg-slate-950 mx-auto shadow-xl border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-12 space-y-6 select-text max-w-4xl">
                 <div className="border-b pb-6 mb-8 border-slate-100 dark:border-slate-800">
