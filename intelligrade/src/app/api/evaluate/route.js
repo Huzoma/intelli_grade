@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import pdfParse from "pdf-parse";
 
-// 1. Next.js App Router Standard: Override Vercel's default 15s timeout
+// 1. Bypass Turbopack ESM bug by forcing Node's native CommonJS require
+const pdfParse = require("pdf-parse");
+
+// 2. Next.js App Router Standard: Override Vercel's default 15s timeout
 export const maxDuration = 60; 
 
 // Helper function to safely parse LLM output
@@ -42,7 +44,7 @@ export async function POST(request) {
     let extractedText = "";
     
     try {
-      // 2. Cloud-Native Fetch: Direct buffer streaming, no local file system required
+      // 3. Cloud-Native Fetch: Direct buffer streaming, no local file system required
       const pdfResponse = await fetch(submission.filePath);
       if (!pdfResponse.ok) {
         throw new Error(`Cloud storage returned status ${pdfResponse.status}`);
@@ -50,7 +52,7 @@ export async function POST(request) {
       const arrayBuffer = await pdfResponse.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       
-      // 3. Instant Native Parsing: Extracts text in milliseconds for the frontend
+      // 4. Instant Native Parsing: Extracts text in milliseconds for the frontend
       const parsedPdf = await pdfParse(buffer);
       extractedText = parsedPdf.text;
       
@@ -66,7 +68,7 @@ export async function POST(request) {
       throw new Error("Gemini API key is not configured in the environment variables.");
     }
 
-    // 4. Optimized Prompt: AI focuses solely on metadata, avoiding text regurgitation timeouts
+    // 5. Optimized Prompt: AI focuses solely on metadata, avoiding text regurgitation timeouts
     const prompt = `You are an academic grading assistant. Analyze the attached academic PDF document to determine:
 1. The actual title of the proposal, report, or assignment extracted directly from the document content (do NOT use the filename). If no clear title exists, summarize the main topic in a concise title.
 2. A detailed academic summary of the document (around 3-4 sentences).
@@ -88,7 +90,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   ]
 }`;
 
-    // 5. Modern Gemini 1.5 endpoint with strict JSON typing
+    // 6. Modern Gemini 1.5 endpoint with strict JSON typing
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
@@ -131,7 +133,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
 
     if (vivaQuestions.length === 0) throw new Error("Gemini failed to generate valid viva questions.");
 
-    // 6. Data Merge: Saves both the AI metadata AND the instantly parsed full document text
+    // 7. Data Merge: Saves both the AI metadata AND the instantly parsed full document text
     await prisma.submission.update({
       where: { id: submissionId },
       data: {
