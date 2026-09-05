@@ -12,7 +12,6 @@ function cleanAndParseJSON(rawText) {
   if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
     throw new Error("No valid JSON structure found in the AI response.");
   }
-  
   return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
 }
 
@@ -22,32 +21,24 @@ export async function POST(request) {
     const body = await request.json();
     submissionId = body.submissionId;
 
-    if (!submissionId) {
-      return NextResponse.json({ error: "Missing submissionId" }, { status: 400 });
-    }
+    if (!submissionId) return NextResponse.json({ error: "Missing submissionId" }, { status: 400 });
 
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: { rubric: true }
     });
 
-    if (!submission) {
-      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
-    }
+    if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
 
     let base64Data = "";
     
     try {
       const pdfResponse = await fetch(submission.filePath);
-      if (!pdfResponse.ok) {
-        throw new Error(`Cloud storage returned status ${pdfResponse.status}`);
-      }
+      if (!pdfResponse.ok) throw new Error(`Cloud storage returned status ${pdfResponse.status}`);
       const arrayBuffer = await pdfResponse.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      base64Data = buffer.toString("base64");
+      base64Data = Buffer.from(arrayBuffer).toString("base64");
     } catch (readErr) {
-      console.error("[AI Evaluation] Error fetching PDF:", readErr);
-      throw new Error("Failed to process the document: " + readErr.message);
+      throw new Error("Failed to fetch document from cloud: " + readErr.message);
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -67,13 +58,11 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
   "aiScore": number,
   "entities": "string",
   "vivaQuestions": [
-    {
-      "text": "string",
-      "marker": "string"
-    }
+    { "text": "string", "marker": "string" }
   ]
 }`;
 
+    // Stable 3.6-flash endpoint
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
@@ -84,48 +73,32 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
       })
     });
 
-    let docTitle = submission.docTitle;
-    let summary = "";
-    let aiScore = 15;
-    let entities = "";
-    let vivaQuestions = [];
+    let docTitle = submission.docTitle, summary = "", aiScore = 15, entities = "", vivaQuestions = [];
 
     if (response.ok) {
       const resData = await response.json();
       const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-      
       if (responseText) {
         const parsed = cleanAndParseJSON(responseText);
         docTitle = parsed.title || submission.docTitle;
         summary = parsed.summary || "";
         aiScore = typeof parsed.aiScore === "number" ? parsed.aiScore : 15;
         entities = Array.isArray(parsed.entities) ? parsed.entities.join(", ") : (parsed.entities || "");
-        
         if (Array.isArray(parsed.vivaQuestions)) {
           vivaQuestions = parsed.vivaQuestions
             .map(q => ({ text: q.text || q.question || "", marker: q.marker || q.evidence || q.context || "" }))
             .filter(q => q.text.trim().length > 0);
         }
-      } else {
-        throw new Error("Gemini returned an empty response body.");
       }
     } else {
-      const errText = await response.text();
-      throw new Error(`Gemini API call failed: ${response.status} - ${errText}`);
+      throw new Error(`Gemini API call failed: ${response.status}`);
     }
 
     if (vivaQuestions.length === 0) throw new Error("Gemini failed to generate viva questions.");
 
     await prisma.submission.update({
       where: { id: submissionId },
-      data: {
-        docTitle,
-        summary,
-        aiScore,
-        entities,
-        fullText: "PDF is rendered natively on the dashboard via Supabase.",
-        status: "needs_grading"
-      }
+      data: { docTitle, summary, aiScore, entities, status: "needs_grading" }
     });
 
     await prisma.vivaQuestion.deleteMany({ where: { submissionId } });
@@ -136,11 +109,6 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
     return NextResponse.json({ success: true, docTitle, summary, aiScore, entities, vivaQuestions });
   } catch (error) {
     console.error("[AI Evaluation] Evaluation API error:", error);
-    if (submissionId) {
-      try {
-        await prisma.submission.delete({ where: { id: submissionId } }).catch(() => {});
-      } catch (cleanupErr) {}
-    }
     return NextResponse.json({ error: "AI Evaluation failed: " + error.message }, { status: 500 });
   }
 }
