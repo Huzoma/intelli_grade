@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// 1. Next.js App Router Standard: Override Vercel's default 15s timeout
 export const maxDuration = 60; 
 
-// Helper function to safely parse LLM output
 function cleanAndParseJSON(rawText) {
   if (!rawText) throw new Error("Empty response received from AI model.");
   let cleaned = rawText.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
@@ -38,7 +36,6 @@ export async function POST(request) {
     }
 
     let base64Data = "";
-    let extractedText = "";
     
     try {
       const pdfResponse = await fetch(submission.filePath);
@@ -47,25 +44,17 @@ export async function POST(request) {
       }
       const arrayBuffer = await pdfResponse.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      
-      // 2. RUNTIME REQUIRE: Placed inside the function to bypass Vercel build crashes
-      const pdfParse = require("pdf-parse");
-      const parsedPdf = await pdfParse(buffer);
-      extractedText = parsedPdf.text;
-      
       base64Data = buffer.toString("base64");
     } catch (readErr) {
-      console.error("[AI Evaluation] Error fetching or parsing PDF:", readErr);
+      console.error("[AI Evaluation] Error fetching PDF:", readErr);
       throw new Error("Failed to process the document: " + readErr.message);
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("Gemini API key is not configured in the environment variables.");
-    }
+    if (!apiKey) throw new Error("Gemini API key is missing.");
 
     const prompt = `You are an academic grading assistant. Analyze the attached academic PDF document to determine:
-1. The actual title of the proposal, report, or assignment extracted directly from the document content (do NOT use the filename). If no clear title exists, summarize the main topic in a concise title.
+1. The actual title of the proposal, report, or assignment extracted directly from the document content. If no clear title exists, summarize the main topic in a concise title.
 2. A detailed academic summary of the document (around 3-4 sentences).
 3. AI generated probability percentage (0-100%, lower is better).
 4. Key technologies, tools, libraries, or concepts referenced in the document (comma-separated string).
@@ -125,7 +114,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
       throw new Error(`Gemini API call failed: ${response.status} - ${errText}`);
     }
 
-    if (vivaQuestions.length === 0) throw new Error("Gemini failed to generate valid viva questions.");
+    if (vivaQuestions.length === 0) throw new Error("Gemini failed to generate viva questions.");
 
     await prisma.submission.update({
       where: { id: submissionId },
@@ -134,7 +123,7 @@ Return ONLY a valid JSON object matching this schema. Do not wrap in markdown bl
         summary,
         aiScore,
         entities,
-        fullText: extractedText,
+        fullText: "PDF is rendered natively on the dashboard via Supabase.",
         status: "needs_grading"
       }
     });
