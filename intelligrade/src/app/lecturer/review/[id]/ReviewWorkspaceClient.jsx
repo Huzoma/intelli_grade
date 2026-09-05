@@ -10,14 +10,22 @@ import {
 import { toggleVivaQuestionAction, submitGradeAction, createCommentAction, deleteCommentAction } from "@/app/actions/grading";
 import { toast } from "sonner";
 import CommentCard from "@/components/CommentCard";
+import dynamic from "next/dynamic";
 
-// react-pdf imports configured safely for Next.js Turbopack
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
+// Static import for PDF.js configuration
+import { pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 
-// Safely route the worker through unpkg to bypass Next.js build module issues
+// Safely route the worker through unpkg
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+// Native Next.js Dynamic Imports (Bypasses SSR without useEffect state hacks)
+const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse flex space-x-4 p-12"><div className="h-4 bg-slate-300 dark:bg-slate-700 rounded w-3/4"></div></div>
+});
+const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
 export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubricCriteria }) {
   const router = useRouter();
@@ -26,12 +34,9 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
   const [grade, setGrade] = useState(submission.humanScore !== null ? submission.humanScore : "");
   const [localQuestions, setLocalQuestions] = useState(vivaQuestions);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState("reader"); // 'reader' | 'summary'
+  const [viewMode, setViewMode] = useState("reader"); 
   
-  // PDF Document State
   const [numPages, setNumPages] = useState(null);
-
-  // Comments & selections state
   const [localComments, setLocalComments] = useState(submission.comments || []);
   const [selectedText, setSelectedText] = useState("");
   const [newCommentText, setNewCommentText] = useState("");
@@ -146,8 +151,6 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-955 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden relative">
-      
-      {/* Top Header Workspace Bar */}
       <header className="h-16 border-b border-slate-200/60 dark:border-slate-800/80 bg-slate-950 flex items-center justify-between px-6 shrink-0 z-10 shadow-md">
         <div className="flex items-center space-x-6">
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -177,12 +180,8 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
         </div>
       </header>
 
-      {/* Main Split Workspace */}
       <main className="flex-1 flex overflow-hidden">
-        
-        {/* Left Pane: PDF Viewer Area */}
         <section className="flex-1 flex flex-col bg-slate-100/30 dark:bg-slate-900/20 relative overflow-hidden">
-          
           <div className="flex justify-between items-center px-6 py-3 bg-white dark:bg-slate-950 border-b border-slate-200/50 dark:border-slate-800/85 shrink-0 z-10">
             <div className="flex space-x-2">
               <button onClick={() => setViewMode("reader")} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${viewMode === "reader" ? "bg-primary text-white shadow-sm" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"}`}>
@@ -213,7 +212,6 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
                 <Document
                   file={submission.filePath}
                   onLoadSuccess={onDocumentLoadSuccess}
-                  loading={<div className="animate-pulse flex space-x-4"><div className="h-4 bg-slate-300 dark:bg-slate-700 rounded w-3/4"></div></div>}
                   className="flex flex-col items-center gap-6"
                 >
                   {Array.from(new Array(numPages || 0), (el, index) => (
@@ -251,7 +249,6 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
           </div>
         </section>
 
-        {/* Right Pane: IntelliGrade AI Assistant */}
         <aside className="w-96 sm:w-[450px] shrink-0 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-20 transition-colors">
           <div className="flex px-3 pt-4 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 shrink-0">
             {[
