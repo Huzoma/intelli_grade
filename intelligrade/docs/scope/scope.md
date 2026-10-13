@@ -24,7 +24,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | K | Student feedback workspace | Shipped | existing |
 | L | Class roster | Shipped | existing |
 | M | Settings screens | Shipped | in-progress |
-| 1 | Test infrastructure | Foundation | planned |
+| 1 | Test infrastructure | Foundation | in-progress |
 | 2 | Input validation foundation | Foundation | planned |
 | 3 | Global feedback surface | Slice 1 | planned |
 | 4 | Route loading & error boundaries | Slice 1 | planned |
@@ -85,10 +85,19 @@ Profile panels for both roles, plus notification switches, the AI flagging thres
 
 The app's own foundations are already shipped above. These two are the ones that are genuinely missing, and both sit underneath everything that follows.
 
-### 1. Test infrastructure · needs a decision
+### 1. Test infrastructure · in-progress
 No test runner is configured anywhere in the project. Your chosen Beta workflow closes every feature with `/test`, so without this every later feature stalls one box short of done.
 **Done when:** a test command runs from a clean checkout, covers at least one server action and one rendered screen, and passes in CI.
-- [ ] Design it (spec): `/architect test infrastructure`
+spec [0001](../specs/0001-test-infrastructure.md)
+- [x] Design it (spec): `/architect test infrastructure`
+- [ ] Build it: `/develop test infrastructure`
+  - [ ] Milestone 1, the thin thread through every layer: configs, alias, a smoke test per runner, and CI · AC-1, AC-2, AC-3, AC-12, AC-13
+  - [ ] Milestone 2, the unit layer: mocked boundaries, entity factories, `loginAction`, `proxy.js` · AC-4, AC-5, AC-8
+  - [ ] Milestone 3, the component layer: jsdom stubs and the login screen · AC-6, AC-7
+  - [ ] Milestone 4, the browser layer: production build, reused session, seeded test database · AC-9, AC-10, AC-11
+  - [ ] Milestone 5, coverage reporting and the `AGENTS.md` convention handoff · AC-14, AC-15
+- [ ] Verify it: `/check verify test infrastructure`
+- [ ] Test it: `/test test infrastructure`
 
 ### 2. Input validation foundation · needs a decision
 `AGENTS.md` requires every server action and route handler to parse its input before it reaches the database, and today none of them do. This sets the one pattern the whole app follows: where schemas live, how a rejection is shaped, and how it reaches the user.
@@ -171,6 +180,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Student registration & onboarding**: self service account creation, pending the Slice 3 decisions · needs a decision
 - **Analytics & error monitoring**: no product analytics or error reporting exists · needs a decision
 - **Public page SEO**: the landing page carries only default metadata · needs a decision
+- **Production database engine**: the test harness switches the local engine to SQLite so a clean checkout runs with no services, which leaves local and test differing from whatever production uses. One `schema.prisma` cannot declare two providers, so this needs a deliberate rule · needs a decision · from spec 0001
 
 ## Legend
 
