@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
 
 const ThemeContext = createContext({
   theme: "light",
@@ -8,40 +8,53 @@ const ThemeContext = createContext({
   mounted: false,
 });
 
+// There is nothing to subscribe to: the answer flips once, when hydration ends.
+const subscribe = () => () => {};
+
+// Reads the saved choice, falling back to the system preference. Safe to call
+// on the server, where neither is available.
+function resolveInitialTheme() {
+  if (typeof window === "undefined") return "light";
+
+  try {
+    const storedTheme = localStorage.getItem("theme");
+    if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch (error) {
+    return "light";
+  }
+}
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState("light");
-  const [mounted, setMounted] = useState(false);
+  // The theme is resolved during the first render rather than inside an effect,
+  // and "mounted" comes from useSyncExternalStore rather than an effect, so no
+  // state is ever set synchronously from an effect. Nothing theme dependent
+  // renders before hydration ends, which keeps the server and the first client
+  // render identical.
+  const [theme, setTheme] = useState(resolveInitialTheme);
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    try {
-      const storedTheme = localStorage.getItem("theme");
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initialTheme = storedTheme === "dark" || (!storedTheme && systemPrefersDark) ? "dark" : "light";
-      
-      setTheme(initialTheme);
-      
-      // Keep DOM class in sync
-      if (initialTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    } catch (e) {}
-    setMounted(true);
-  }, []);
+    // Keeps the document class in sync with the theme, on mount and on change.
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const nextTheme = theme === "light" ? "dark" : "light";
+
     setTheme(nextTheme);
+
     try {
       localStorage.setItem("theme", nextTheme);
-      if (nextTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    } catch (e) {}
-  };
+    } catch (error) {
+      // A blocked storage API must not stop the toggle from working.
+    }
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
