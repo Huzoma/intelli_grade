@@ -228,7 +228,7 @@ export default function StudentUploadPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-primary-light text-primary rounded-xl flex-shrink-0 shadow-inner">
+                      <div className="p-3 bg-primary-light text-primary rounded-xl shrink-0 shadow-inner">
                         <FileType className="w-8 h-8" />
                       </div>
                       <div className="overflow-hidden">
