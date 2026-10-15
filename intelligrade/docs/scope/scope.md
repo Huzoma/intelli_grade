@@ -88,14 +88,14 @@ The app's own foundations are already shipped above. These two are the ones that
 ### 1. Test infrastructure · in-progress
 No test runner is configured anywhere in the project. Your chosen Beta workflow closes every feature with `/test`, so without this every later feature stalls one box short of done.
 **Done when:** a test command runs from a clean checkout, covers at least one server action and one rendered screen, and passes in CI.
-spec [0001](../specs/0001-test-infrastructure/index.md) · code in `vitest.config.mjs`, `playwright.config.mjs`, `vitest.setup.js`, `.github/workflows/ci.yml`, `src/test/`, `e2e/`
+spec [0001](../specs/0001-test-infrastructure/index.md) · code in `vitest.config.mjs`, `playwright.config.mjs`, `vitest.setup.js`, `docker-compose.test.yml`, `.github/workflows/ci.yml`, `src/test/`, `e2e/`
 - [x] Design it (spec): `/architect test infrastructure`
 - [x] Build it: `/develop test infrastructure`
   - [x] Milestone 1, the thin thread through every layer: configs, alias, a smoke test per runner, and CI · AC-1, AC-2, AC-3, AC-12, AC-13
   - [x] Milestone 2, the unit layer: mocked boundaries, entity factories, `loginAction`, `proxy.js` · AC-4, AC-5, AC-8
   - [x] Milestone 3, the component layer: jsdom stubs and the login screen · AC-6, AC-7
   - [x] Milestone 4, the browser layer: production build, reused session, seeded test database · AC-9, AC-10, AC-11
-  - [ ] Milestone 5, coverage reporting and the `AGENTS.md` convention handoff · AC-14, AC-15
+  - [x] Milestone 5, coverage reporting and the `AGENTS.md` convention handoff · AC-14, AC-15 (AC-15 itself lands when `/sync` writes the convention)
 - [ ] Verify it: `/check verify test infrastructure`
 - [ ] Test it: `/test test infrastructure`
 

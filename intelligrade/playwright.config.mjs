@@ -50,6 +50,9 @@ export default defineConfig({
     env: {
       ...process.env,
       DATABASE_URL: process.env.DATABASE_URL,
+      // schema.prisma declares directUrl, so the server needs it too or Prisma
+      // fails to start with P1012.
+      DIRECT_URL: process.env.DIRECT_URL,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,

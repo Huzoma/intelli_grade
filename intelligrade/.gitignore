@@ -35,10 +35,6 @@ yarn-error.log*
 # The test environment is committed on purpose: dummy values, local test database.
 !.env.test
 
-# disposable test database, rebuilt by the end to end run
-/prisma/test.db
-/prisma/test.db-journal
-
 # playwright
 /test-results/
 /playwright-report/

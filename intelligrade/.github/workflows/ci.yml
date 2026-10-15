@@ -23,6 +23,23 @@ jobs:
     name: End to end tests
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    services:
+      # The disposable test database, the same one docker-compose.test.yml runs
+      # locally. Published on 5433 so the committed .env.test connection string
+      # works unchanged here and on a developer's machine.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: intelligrade_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d intelligrade_test"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,3 +51,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npx prisma generate
       - run: npm run test:e2e
+      # The config records a trace on the first retry, which is only useful if
+      # it leaves the runner.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

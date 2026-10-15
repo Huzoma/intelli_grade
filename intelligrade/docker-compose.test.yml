@@ -1,0 +1,30 @@
+# The disposable Postgres the end to end suite runs against.
+#
+# Start it:  docker compose -f docker-compose.test.yml up -d --wait
+# Remove it: docker compose -f docker-compose.test.yml down -v
+#
+# The credentials match .env.test and are deliberately throwaway. The end to end
+# run drops every row and reseeds, so this stays separate from any database you
+# care about. There is no volume, so the data lives in the container only and
+# `down -v` leaves nothing behind.
+#
+# Published on 5433 rather than 5432 so it does not collide with a Postgres you
+# may already be running locally. The continuous integration service maps the
+# same port, so the one connection string in .env.test works in both places.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: intelligrade-test-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: intelligrade_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      # `up --wait` blocks until this passes, so `prisma db push` never races a
+      # database that is still starting.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d intelligrade_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
