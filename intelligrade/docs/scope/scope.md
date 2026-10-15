@@ -26,7 +26,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | M | Settings screens | Shipped | in-progress |
 | 1 | Test infrastructure | Foundation | in-progress |
 | 2 | Input validation foundation | Foundation | planned |
-| 3 | Global feedback surface | Slice 1 | planned |
+| 3 | Global feedback surface | Slice 1 | in-progress |
 | 4 | Route loading & error boundaries | Slice 1 | planned |
 | 5 | Destructive action safeguards | Slice 1 | planned |
 | 6 | Honest controls cleanup | Slice 1 | planned |
@@ -108,10 +108,18 @@ spec [0001](../specs/0001-test-infrastructure/index.md) · code in `vitest.confi
 
 The heuristic evaluation found 17 issues. Fifteen of them live here, grouped into cohesive features so each one ships end to end. This slice closes the widest gaps between what the app is doing and what it tells you it is doing.
 
-### 3. Global feedback surface · needs a decision
+### 3. Global feedback surface
 Toast calls exist on about a dozen paths but no toast host is mounted, so saving a grade, adding a comment, toggling a viva question, and saving a rubric all return silence. This makes action results visible everywhere and settles one convention for the whole app. Covers audit items 1, 6, and 14.
 **Done when:** every action over roughly 300ms shows a pending state and resolves into a visible success or failure, async buttons report in flight rather than only dimming, and one documented rule says when feedback is a toast and when it is inline.
-- [ ] Design it (spec): `/architect global feedback surface`
+spec [0002](../specs/0002-global-feedback-surface.md)
+- [x] Design it (spec): `/architect global feedback surface`
+- [ ] Build it: `/develop global feedback surface`
+  - [ ] Milestone 1, the thin thread: the toast host in the root layout following the app theme, the feedback module, the async hook, the shared async button, and the first converted path (Save Draft) · AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-10
+  - [ ] Milestone 2, the rules: one shared grade lock, the comment delete rollback, the remaining review workspace paths, the five validation messages moved inline, the copy convention across all nineteen call sites, the raw error detail stripped from the actions, and the role switch reporting failure only · AC-5, AC-8, AC-9, AC-10, AC-11, AC-12, AC-13
+  - [ ] Milestone 3, the remaining paths: the rubric modal save, plus sign in and upload confirmed against the pattern · AC-5, AC-6, AC-12
+  - [ ] Milestone 4, evidence and handoff: jsdom tests for the shared layer, the Playwright journey proving a formerly silent action now speaks, and the toast rule handed to `/sync` · AC-14, AC-15
+- [ ] Verify it: `/check verify global feedback surface`
+- [ ] Test it: `/test global feedback surface`
 
 ### 4. Route loading & error boundaries · needs a decision
 Every data page is dynamic and blocks on a remote query, with no loading file, no error file, and no not found file anywhere. A slow query looks frozen and a failure throws the user out of the app shell entirely. Covers audit items 2, 3, and 15.
