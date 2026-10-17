@@ -21,6 +21,7 @@ export const metadata = {
 
 import Script from "next/script";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ToastHost from "@/components/ToastHost";
 
 export default function RootLayout({ children }) {
   return (
@@ -51,6 +52,9 @@ export default function RootLayout({ children }) {
         />
         <ThemeProvider>
           {children}
+          {/* Mounted once, inside the provider, so it reads the theme the app
+              resolved and survives client navigation. */}
+          <ToastHost />
         </ThemeProvider>
       </body>
     </html>

@@ -43,7 +43,8 @@ Stored in `docs/specs/`, format `docs/specs/NNNN-title.md`. Feature scope lives 
 - **Halt after every successful task** and give one semantic commit message using Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`).
 - **Validate every input with Zod.** Every server action and route handler parses its input with a Zod schema before it reaches Prisma. (Zod is not installed yet, add it before writing new actions.)
 - **Zero raw SQL.** All database access goes through the Prisma singleton in `@/lib/prisma`. Never call `$queryRaw` or `$executeRaw`.
-- **Feedback for any action over 300ms.** Anything slower than 300ms shows a pending state, then resolves to a success or error message through Sonner. Mount one `<Toaster />` in the root layout.
+- **Feedback for any action over 300ms.** Anything slower than 300ms shows a pending state, then resolves to a success or error message through Sonner. Mount the shared `ToastHost` once in the root layout, inside `ThemeProvider`, so it follows the theme the app resolved rather than the system setting.
+- **Toast or inline.** An action's outcome is a toast. Feedback the user must correct in place, such as a field they are already in, is rendered inline next to that field. Use `@/lib/feedback`, `@/hooks/useAsyncAction` and `@/components/AsyncButton` instead of hand rolling pending state or messages. A control disables in the same tick as the click, and only reveals its spinner if the action outlives about 150ms. No user facing string is built by appending a caught error; log the full error instead.
 - Await Next.js 16 request APIs: `const cookieStore = await cookies();` and `const { id } = await params;`.
 - Server mutations live in `src/app/actions/` behind `"use server"`. Route handlers live in `src/app/api/`. Interactive components start with `"use client"`.
 - Route access is enforced in `src/proxy.js` (Next.js 16 renamed `middleware` to `proxy`).

@@ -1,7 +1,7 @@
 # 0002. Give every action a visible result
 
 **Date**: 2026-10-15
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

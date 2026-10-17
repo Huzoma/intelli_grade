@@ -10,6 +10,8 @@ import {
 import { toggleVivaQuestionAction, submitGradeAction, createCommentAction, deleteCommentAction } from "@/app/actions/grading";
 import { toast } from "sonner";
 import CommentCard from "@/components/CommentCard";
+import AsyncButton from "@/components/AsyncButton";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import dynamic from "next/dynamic";
 
 // Strict SSR isolation: The server will never attempt to parse or render this component
@@ -36,6 +38,14 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
   const [newCommentText, setNewCommentText] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipCoords, setTooltipCoords] = useState({ x: 0, y: 0 });
+
+  // Save Draft's write, under the grade lock. Submit Final Grade still raises its
+  // own isSubmitting flag until it moves onto this hook as well. Both grade
+  // buttons read both flags below, so the two always disable together, which is
+  // what they must do because they write the same submission row.
+  const gradeWrite = useAsyncAction("grade", submitGradeAction, {
+    successMessage: "Draft saved.",
+  });
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -120,12 +130,13 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
   };
 
   const handleSaveDraft = async () => {
+    // The empty grade is a validation failure the user corrects in the field they
+    // are already in, so it belongs inline and not in a toast. Moving the five
+    // validation messages inline is the next milestone's task; this keeps today's
+    // behaviour until then.
     if (grade === "") return toast.error("Please enter a grade score before saving draft.");
-    setIsSubmitting(true);
-    const result = await submitGradeAction(submission.id, grade, "needs_grading");
-    setIsSubmitting(false);
-    if (result.error) toast.error(result.error);
-    else toast.success("Draft saved successfully!");
+
+    await gradeWrite.run(submission.id, grade, "needs_grading");
   };
 
   const handleSubmitFinalGrade = async () => {
@@ -163,10 +174,10 @@ export default function ReviewWorkspaceClient({ submission, vivaQuestions, rubri
             <input type="number" min="0" max="100" value={grade} onChange={(e) => setGrade(e.target.value)} className="w-12 bg-transparent border-0 text-white font-bold text-center text-sm focus:ring-0 focus:outline-none placeholder-slate-700" placeholder="--" />
             <span className="text-slate-400 font-semibold text-sm select-none">%</span>
           </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSaveDraft} disabled={isSubmitting} className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-primary bg-primary-light border border-primary-border rounded-xl hover:bg-primary-light/80 disabled:opacity-50 transition-colors cursor-pointer uppercase tracking-wider">
+          <AsyncButton isPending={gradeWrite.isPending} disabled={isSubmitting} onClick={handleSaveDraft} pendingLabel="Saving" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-primary bg-primary-light border border-primary-border rounded-xl hover:bg-primary-light/80 disabled:opacity-50 transition-colors cursor-pointer uppercase tracking-wider">
             Save Draft
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmitFinalGrade} disabled={isSubmitting} className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary-hover shadow-sm disabled:opacity-50 transition-all cursor-pointer uppercase tracking-wider">
+          </AsyncButton>
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmitFinalGrade} disabled={isSubmitting || gradeWrite.isPending} className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary-hover shadow-sm disabled:opacity-50 transition-all cursor-pointer uppercase tracking-wider">
             Submit Final Grade
           </motion.button>
         </div>

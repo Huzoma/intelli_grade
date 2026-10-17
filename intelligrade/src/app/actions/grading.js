@@ -34,8 +34,10 @@ export async function submitGradeAction(submissionId, humanScore, status = "grad
     revalidatePath(`/lecturer/review/${submissionId}`);
     return { success: true, updated };
   } catch (error) {
+    // The full error is logged for a developer. It is never appended to the
+    // returned message, because that string is now shown to the user.
     console.error("Error saving grade:", error);
-    return { error: "Failed to submit grade: " + error.message };
+    return { error: "Failed to save the grade." };
   }
 }
 

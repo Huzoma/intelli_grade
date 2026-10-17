@@ -114,5 +114,31 @@ body {
   box-shadow: var(--glass-shadow);
 }
 
+/* Toast surface. Sonner ships its own palette and injects that stylesheet at
+   runtime, so these rules carry one extra `html` selector to outrank it, and they
+   take their values from the project tokens so a toast does not read as a
+   different application. Sonner's own --success-bg, --warning-bg and their border
+   pairs are left alone: naming them here would point each at itself, and they only
+   take effect under rich colors, which this host does not turn on. */
+html [data-sonner-toaster] {
+  --border-radius: 0.75rem; /* the rounded-xl used by the surrounding controls */
+  font-family: var(--font-sans);
+}
+
+html [data-sonner-toaster][data-sonner-theme="light"],
+html [data-sonner-toaster][data-sonner-theme="dark"] {
+  --normal-bg: var(--glass-bg);
+  --normal-bg-hover: var(--glass-bg);
+  --normal-border: var(--glass-border);
+  --normal-border-hover: var(--primary-border);
+  --normal-text: var(--foreground);
+}
+
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+
 
 
